@@ -18,7 +18,7 @@ Para cada aula ou entrega, registre abaixo:
 
 | Data | Aula | Ferramenta | Prompt (resumo) | Uso da saída |
 |------|------|------------|-----------------|--------------|
-| _dd/mm/aaaa_ | _Aula XX_ | _ex: ChatGPT_ | _ex: "Como injetar dependência via construtor no Spring?"_ | _ex: "Adaptei o exemplo ao meu Service"_ |
+| 04/09/2026 | Aula 04 | Gemini | "Como configurar Flyway no Spring Boot com ddl-auto=validate e convenção de nomes de arquivos V1__...sql?" | Usei como base para estruturar as migrações V1, V2 e V3 e configurar o application.properties. |
 
 ---
 
