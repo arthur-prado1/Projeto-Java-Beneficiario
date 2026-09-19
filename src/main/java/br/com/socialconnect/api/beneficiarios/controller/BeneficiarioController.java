@@ -1,6 +1,7 @@
 package br.com.socialconnect.api.beneficiarios.controller;
 
 import br.com.socialconnect.api.beneficiarios.dto.BeneficiarioDTO;
+import br.com.socialconnect.api.beneficiarios.dto.BeneficiarioPatchDTO;
 import br.com.socialconnect.api.beneficiarios.service.BeneficiarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,13 @@ public class BeneficiarioController {
         BeneficiarioDTO salvo = service.salvar(dto);
         URI location = URI.create("/api/v1/beneficiarios/" + salvo.idBeneficiario());
         return ResponseEntity.created(location).body(salvo);
+    }
+
+    @PatchMapping("/{idBeneficiario}")
+    public ResponseEntity<BeneficiarioDTO> atualizarContato(
+            @PathVariable Long idBeneficiario,
+            @RequestBody BeneficiarioPatchDTO dto) {
+        return ResponseEntity.ok(service.atualizarContato(idBeneficiario, dto));
     }
 
     @DeleteMapping("/{idBeneficiario}")

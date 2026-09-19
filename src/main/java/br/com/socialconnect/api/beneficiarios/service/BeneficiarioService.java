@@ -1,6 +1,7 @@
 package br.com.socialconnect.api.beneficiarios.service;
 
 import br.com.socialconnect.api.beneficiarios.dto.BeneficiarioDTO;
+import br.com.socialconnect.api.beneficiarios.dto.BeneficiarioPatchDTO;
 import br.com.socialconnect.api.beneficiarios.model.Beneficiario;
 import br.com.socialconnect.api.beneficiarios.repository.BeneficiarioRepository;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,21 @@ public class BeneficiarioService {
 
     public BeneficiarioDTO salvar(BeneficiarioDTO dto) {
         Beneficiario beneficiario = toEntity(dto);
+        beneficiario = repository.save(beneficiario);
+        return toDTO(beneficiario);
+    }
+
+    public BeneficiarioDTO atualizarContato(Long idBeneficiario, BeneficiarioPatchDTO dto) {
+        Beneficiario beneficiario = repository.findById(idBeneficiario)
+                .orElseThrow(() -> new RuntimeException("Beneficiário não encontrado com o ID: " + idBeneficiario));
+        
+        if (dto.telefone() != null && !dto.telefone().isBlank()) {
+            beneficiario.setTelefone(dto.telefone());
+        }
+        if (dto.endereco() != null && !dto.endereco().isBlank()) {
+            beneficiario.setEndereco(dto.endereco());
+        }
+
         beneficiario = repository.save(beneficiario);
         return toDTO(beneficiario);
     }

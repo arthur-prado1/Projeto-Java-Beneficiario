@@ -1,5 +1,6 @@
 package br.com.socialconnect.api.doacoes.service;
 
+import br.com.socialconnect.api.doacoes.dto.DoacaoRequestDTO;
 import br.com.socialconnect.api.doacoes.dto.DoacaoResponseDTO;
 import br.com.socialconnect.api.doacoes.model.Doacao;
 import br.com.socialconnect.api.doacoes.model.TipoDoacao;
@@ -17,6 +18,17 @@ public class DoacaoService {
 
     public DoacaoService(DoacaoRepository repository) {
         this.repository = repository;
+    }
+
+    public DoacaoResponseDTO salvar(DoacaoRequestDTO dto) {
+        Doacao doacao = Doacao.builder()
+                .idDoador(dto.idDoador())
+                .dataDoacao(dto.dataDoacao() != null ? dto.dataDoacao() : LocalDate.now())
+                .valor(dto.valor())
+                .tipo(dto.tipo())
+                .build();
+        doacao = repository.save(doacao);
+        return toDTO(doacao);
     }
 
     public Page<DoacaoResponseDTO> listar(
