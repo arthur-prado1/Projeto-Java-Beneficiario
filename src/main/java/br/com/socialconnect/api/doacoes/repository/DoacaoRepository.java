@@ -11,12 +11,22 @@ import java.time.LocalDate;
 
 @Repository
 public interface DoacaoRepository extends JpaRepository<Doacao, Long> {
-    
-    // A mágica: nome do método define a query SQL
+
     Page<Doacao> findByDataDoacaoBetweenAndTipo(
-        LocalDate dataInicio, 
-        LocalDate dataFim, 
-        TipoDoacao tipo, 
-        Pageable pageable
+            LocalDate dataInicio,
+            LocalDate dataFim,
+            TipoDoacao tipo,
+            Pageable pageable
+    );
+
+    Page<Doacao> findByDataDoacaoBetween(
+            LocalDate dataInicio,
+            LocalDate dataFim,
+            Pageable pageable
+    );
+
+    Page<Doacao> findByTipo(
+            TipoDoacao tipo,
+            Pageable pageable
     );
 }

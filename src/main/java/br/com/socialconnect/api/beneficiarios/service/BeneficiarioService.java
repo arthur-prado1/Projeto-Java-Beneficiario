@@ -1,10 +1,18 @@
 package br.com.socialconnect.api.beneficiarios.service;
 
-import br.com.socialconnect.api.beneficiarios.dto.BeneficiarioDTO;
 import br.com.socialconnect.api.beneficiarios.dto.BeneficiarioPatchDTO;
+import br.com.socialconnect.api.beneficiarios.dto.BeneficiarioRequestDTO;
+import br.com.socialconnect.api.beneficiarios.dto.BeneficiarioResponseDTO;
 import br.com.socialconnect.api.beneficiarios.model.Beneficiario;
 import br.com.socialconnect.api.beneficiarios.repository.BeneficiarioRepository;
+import br.com.socialconnect.api.exception.CpfDuplicadoException;
+import br.com.socialconnect.api.exception.RecursoNaoEncontradoException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -12,62 +20,116 @@ public class BeneficiarioService {
 
     private final BeneficiarioRepository repository;
 
-    // Injeção de dependência via construtor (Boa prática para testes)
     public BeneficiarioService(BeneficiarioRepository repository) {
         this.repository = repository;
     }
 
-    public List<BeneficiarioDTO> listarTodos() {
+    public Page<BeneficiarioResponseDTO> listar(String nome, String cpf, Pageable pageable) {
+        Page<Beneficiario> page;
+        if (cpf != null && !cpf.isBlank()) {
+            page = repository.findByCpf(cpf, pageable);
+        } else if (nome != null && !nome.isBlank()) {
+            page = repository.findByNomeContainingIgnoreCase(nome, pageable);
+        } else {
+            page = repository.findAll(pageable);
+        }
+        return page.map(this::toResponseDTO);
+    }
+
+    public List<BeneficiarioResponseDTO> listarTodos() {
         return repository.findAll().stream()
-                .map(this::toDTO)
+                .map(this::toResponseDTO)
                 .toList();
     }
 
-    public BeneficiarioDTO buscarPorId(Long idBeneficiario) {
-        Beneficiario beneficiario = repository.findById(idBeneficiario)
-                .orElseThrow(() -> new RuntimeException("Beneficiário não encontrado com o ID: " + idBeneficiario));
-        return toDTO(beneficiario);
+    public BeneficiarioResponseDTO buscarPorId(Long idBeneficiario) {
+        return repository.findById(idBeneficiario)
+                .map(this::toResponseDTO)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Beneficiário não encontrado com o ID: " + idBeneficiario));
     }
 
-    public BeneficiarioDTO salvar(BeneficiarioDTO dto) {
-        Beneficiario beneficiario = toEntity(dto);
-        beneficiario = repository.save(beneficiario);
-        return toDTO(beneficiario);
+    @Transactional
+    public BeneficiarioResponseDTO criar(BeneficiarioRequestDTO dto) {
+        if (repository.existsByCpf(dto.cpf())) {
+            throw new CpfDuplicadoException(dto.cpf());
+        }
+        Beneficiario entity = Beneficiario.builder()
+                .nome(dto.nome())
+                .cpf(dto.cpf())
+                .telefone(dto.telefone())
+                .endereco(dto.endereco())
+                .situacaoVulnerabilidade(dto.situacaoVulnerabilidade())
+                .dataCadastro(LocalDate.now())
+                .build();
+        return toResponseDTO(repository.save(entity));
     }
 
-    public BeneficiarioDTO atualizarContato(Long idBeneficiario, BeneficiarioPatchDTO dto) {
-        Beneficiario beneficiario = repository.findById(idBeneficiario)
-                .orElseThrow(() -> new RuntimeException("Beneficiário não encontrado com o ID: " + idBeneficiario));
-        
+    @Transactional
+    public BeneficiarioResponseDTO salvar(BeneficiarioRequestDTO dto) {
+        return criar(dto);
+    }
+
+    @Transactional
+    public BeneficiarioResponseDTO atualizar(Long idBeneficiario, BeneficiarioRequestDTO dto) {
+        Beneficiario entity = repository.findById(idBeneficiario)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Beneficiário não encontrado com o ID: " + idBeneficiario));
+
+        if (!entity.getCpf().equals(dto.cpf()) && repository.existsByCpf(dto.cpf())) {
+            throw new CpfDuplicadoException(dto.cpf());
+        }
+
+        entity.setNome(dto.nome());
+        entity.setCpf(dto.cpf());
+        entity.setTelefone(dto.telefone());
+        entity.setEndereco(dto.endereco());
+        entity.setSituacaoVulnerabilidade(dto.situacaoVulnerabilidade());
+
+        return toResponseDTO(repository.save(entity));
+    }
+
+    @Transactional
+    public BeneficiarioResponseDTO atualizarParcial(Long idBeneficiario, BeneficiarioPatchDTO dto) {
+        Beneficiario entity = repository.findById(idBeneficiario)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Beneficiário não encontrado com o ID: " + idBeneficiario));
+
+        if (dto.nome() != null && !dto.nome().isBlank()) {
+            entity.setNome(dto.nome());
+        }
         if (dto.telefone() != null && !dto.telefone().isBlank()) {
-            beneficiario.setTelefone(dto.telefone());
+            entity.setTelefone(dto.telefone());
         }
         if (dto.endereco() != null && !dto.endereco().isBlank()) {
-            beneficiario.setEndereco(dto.endereco());
+            entity.setEndereco(dto.endereco());
+        }
+        if (dto.situacaoVulnerabilidade() != null && !dto.situacaoVulnerabilidade().isBlank()) {
+            entity.setSituacaoVulnerabilidade(dto.situacaoVulnerabilidade());
         }
 
-        beneficiario = repository.save(beneficiario);
-        return toDTO(beneficiario);
+        return toResponseDTO(repository.save(entity));
     }
 
+    @Transactional
+    public BeneficiarioResponseDTO atualizarContato(Long idBeneficiario, BeneficiarioPatchDTO dto) {
+        return atualizarParcial(idBeneficiario, dto);
+    }
+
+    @Transactional
     public void deletar(Long idBeneficiario) {
+        if (!repository.existsById(idBeneficiario)) {
+            throw new RecursoNaoEncontradoException("Beneficiário não encontrado com o ID: " + idBeneficiario);
+        }
         repository.deleteById(idBeneficiario);
     }
 
-    private BeneficiarioDTO toDTO(Beneficiario entity) {
-        return new BeneficiarioDTO(
-                entity.getIdBeneficiario(), entity.getNome(), entity.getCpf(),
-                entity.getTelefone(), entity.getEndereco(), entity.getSituacaoVulnerabilidade(),
-                entity.getDataCadastro()
+    private BeneficiarioResponseDTO toResponseDTO(Beneficiario e) {
+        return new BeneficiarioResponseDTO(
+                e.getIdBeneficiario(),
+                e.getNome(),
+                e.getCpf(),
+                e.getTelefone(),
+                e.getEndereco(),
+                e.getSituacaoVulnerabilidade(),
+                e.getDataCadastro()
         );
-    }
-
-    private Beneficiario toEntity(BeneficiarioDTO dto) {
-        return Beneficiario.builder()
-                .idBeneficiario(dto.idBeneficiario())
-                .nome(dto.nome()).cpf(dto.cpf()).telefone(dto.telefone())
-                .endereco(dto.endereco()).situacaoVulnerabilidade(dto.situacaoVulnerabilidade())
-                .dataCadastro(dto.dataCadastro())
-                .build();
     }
 }

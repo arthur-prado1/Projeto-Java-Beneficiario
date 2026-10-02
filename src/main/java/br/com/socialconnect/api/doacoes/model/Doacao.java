@@ -20,7 +20,7 @@ public class Doacao {
     @Column(name = "id_doacao")
     private Long idDoacao;
 
-    @Column(name = "id_doador")
+    @Column(name = "id_doador", nullable = false)
     private Long idDoador;
 
     @Column(name = "data_doacao", nullable = false)
@@ -32,4 +32,7 @@ public class Doacao {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TipoDoacao tipo;
+
+    @Column(length = 500)
+    private String descricao;
 }
