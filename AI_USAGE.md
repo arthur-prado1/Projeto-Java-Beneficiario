@@ -22,6 +22,9 @@ Para cada aula ou entrega, registre abaixo:
 | 25/09/2026 | Aula 05 | Claude | "Qual a forma recomendada de implementar PUT para substituição total e PATCH para parcial usando DTOs no Spring Boot?" | Adaptei a lógica nos métodos de atualização do BeneficiarioService. |
 | 25/09/2026 | Aula 06 | Gemini | "Como estruturar um @RestControllerAdvice para padronizar erros da API no formato RFC 7807 (Problem Details)?" | Implementei a classe GlobalExceptionHandler e o record ProblemDetail. |
 | 25/09/2026 | Aula 07 | Claude | "Exemplo de teste unitário com Mockito no padrão AAA (Arrange, Act, Assert) para camada de Service." | Estruturei os testes unitários do BeneficiarioServiceTest e DoacaoServiceTest. |
+| 02/10/2026 | Avaliação 1 | Gemini | "Como criar uma anotação de validação customizada (@EstoqueNaoNegativo) no Spring Boot usando ConstraintValidator para barrar estoque negativo?" | Adaptei a lógica para validar tanto no cadastro quanto na alteração de produtos. |
+| 02/10/2026 | Avaliação 1 | Claude | "Como configurar teste de integração no Spring Boot com Testcontainers e PostgreSQL subindo na porta aleatória?" | Utilizado como referência para implementar o ProdutoControllerIntegrationTest. |
+| 02/10/2026 | Avaliação 1 | Gemini | "Como documentar respostas de erro RFC 7807 (404, 409, 422) nas anotações @ApiResponse do SpringDoc OpenAPI?" | Apliquei as anotações nos métodos do ProdutoController. |
 
 ---
 
